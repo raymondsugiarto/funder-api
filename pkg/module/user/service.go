@@ -2,14 +2,13 @@ package user
 
 import (
 	"context"
-	"errors"
 
 	"github.com/raymondsugiarto/funder-api/pkg/entity"
 	usercredential "github.com/raymondsugiarto/funder-api/pkg/module/user-credential"
 )
 
 type Service interface {
-	CreateUser(*entity.CreateUser) (*entity.CreateUser, error)
+	// CreateUser(ctx context.Context, dto *entity.UserDto) (*entity.UserDto, error)
 	FindByUserID(ctx context.Context, userID string) (*entity.UserDto, error)
 }
 
@@ -27,7 +26,7 @@ func NewService(repository Repository, userCredentialService usercredential.Serv
 
 // FindByUserID is a function to find user by user id
 func (s *service) FindByUserID(ctx context.Context, userID string) (*entity.UserDto, error) {
-	userDto, err := s.repository.FindByUserID(ctx, userID)
+	userDto, err := s.repository.FindByID(ctx, userID)
 	if err != nil {
 		return nil, err
 	}
@@ -36,20 +35,20 @@ func (s *service) FindByUserID(ctx context.Context, userID string) (*entity.User
 }
 
 // CreateUser is a function to create user
-func (s *service) CreateUser(createUser *entity.CreateUser) (*entity.CreateUser, error) {
-	userCredential := &entity.UserCredential{
-		OrganizationData: createUser.OrganizationData,
-		Username:         createUser.Username,
-	}
-	_, err := s.userCredentialService.FindByUsername(userCredential)
-	if err == nil {
-		return nil, errors.New("errorAccountCodeAlreadyExist")
-	}
+// func (s *service) CreateUser(createUser *entity.CreateUser) (*entity.CreateUser, error) {
+// 	userCredential := &entity.UserCredential{
+// 		OrganizationData: createUser.OrganizationData,
+// 		Username:         createUser.Username,
+// 	}
+// 	_, err := s.userCredentialService.FindByUsername(userCredential)
+// 	if err == nil {
+// 		return nil, errors.New("errorAccountCodeAlreadyExist")
+// 	}
 
-	_, err = s.userCredentialService.FindByEmail(userCredential)
-	if err == nil {
-		return nil, errors.New("errorEmailAlreadyExist")
-	}
+// 	_, err = s.userCredentialService.FindByEmail(userCredential)
+// 	if err == nil {
+// 		return nil, errors.New("errorEmailAlreadyExist")
+// 	}
 
-	return s.repository.CreateUser(createUser)
-}
+// 	return s.repository.CreateUser(createUser)
+// }

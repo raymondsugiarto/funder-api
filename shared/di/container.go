@@ -4,6 +4,7 @@ import (
 	"github.com/gofiber/fiber/v3"
 	"github.com/raymondsugiarto/funder-api/pkg/infrastructure/database"
 	"github.com/raymondsugiarto/funder-api/pkg/module/authentication"
+	"github.com/raymondsugiarto/funder-api/pkg/module/funder"
 	usercredential "github.com/raymondsugiarto/funder-api/pkg/module/user-credential"
 )
 
@@ -23,6 +24,8 @@ func NewContainer(app *fiber.App) Container {
 
 func (c *container) RegisterServices() {
 	c.userCredentialService()
+	c.funderService()
+
 	c.authenticationService()
 }
 
@@ -36,6 +39,12 @@ func (c *container) userCredentialService() {
 	userCredentialRepository := usercredential.NewRepository(database.DBConn)
 	userCredentialService := usercredential.NewService(userCredentialRepository)
 	c.add(usercredential.ServiceName, userCredentialService)
+}
+
+func (c *container) funderService() {
+	funderRepository := funder.NewRepository(database.DBConn)
+	funderService := funder.NewService(funderRepository)
+	c.add(funder.ServiceName, funderService)
 }
 
 func (c *container) add(name string, service any) {

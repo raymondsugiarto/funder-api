@@ -45,9 +45,11 @@ type UserCredentialDto struct {
 	Email          string `json:"email" `
 }
 
+
 type UserDto struct {
 }
 
 func NewUserDtoFromModel(m *model.User) *UserDto {
 	return &UserDto{}
 }
+
