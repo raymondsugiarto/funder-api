@@ -4,7 +4,9 @@ import (
 	"context"
 
 	"github.com/raymondsugiarto/funder-api/pkg/entity"
-	"github.com/raymondsugiarto/funder-api/shared/pagination"
+	"github.com/raymondsugiarto/funder-api/pkg/module/user"
+	"github.com/raymondsugiarto/funder-api/shared/database/pagination"
+	"github.com/raymondsugiarto/funder-api/shared/database/transaction"
 )
 
 const ServiceName = "funderService"
@@ -18,15 +20,39 @@ type Service interface {
 }
 
 type service struct {
-	repo Repository
+	txManager transaction.Manager
+	repo      Repository
+	userSvc   user.Service
 }
 
-func NewService(repo Repository) Service {
-	return &service{repo: repo}
+func NewService(
+	txManager transaction.Manager,
+	repo Repository,
+	userSvc user.Service,
+) Service {
+	return &service{
+		txManager: txManager,
+		repo:      repo,
+		userSvc:   userSvc,
+	}
 }
 
 func (s *service) Create(ctx context.Context, dto *entity.FunderDto) (*entity.FunderDto, error) {
-	return s.repo.Create(ctx, dto)
+	var funderDtoResult *entity.FunderDto
+	err := s.txManager.Execute(ctx, func(txCtx context.Context) error {
+		userDto, err := s.userSvc.Create(txCtx, dto.ToUserDto())
+		if err != nil {
+			return err
+		}
+		dto.UserID = userDto.ID
+		res, err := s.repo.Create(txCtx, dto)
+		if err != nil {
+			return err
+		}
+		funderDtoResult = res
+		return nil
+	})
+	return funderDtoResult, err
 }
 
 func (s *service) FindByID(ctx context.Context, id string) (*entity.FunderDto, error) {

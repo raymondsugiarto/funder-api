@@ -38,10 +38,11 @@ func FindFunderByID(service funder.Service) fiber.Handler {
 	}
 }
 
-func FindAllFunderByID(service funder.Service) fiber.Handler {
+func FindAllFunder(service funder.Service) fiber.Handler {
 	return func(c fiber.Ctx) error {
-		var query *entity.FunderFilterDto
-		if err := c.Bind().Query(&query); err != nil {
+		query := new(entity.FunderFilterDto)
+		if err := c.Bind().Query(query); err != nil {
+			log.WithContext(c).Errorf("error query parser", err)
 			return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": err.Error()})
 		}
 

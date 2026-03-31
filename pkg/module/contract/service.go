@@ -4,7 +4,7 @@ import (
 	"context"
 
 	"github.com/raymondsugiarto/funder-api/pkg/entity"
-	"github.com/raymondsugiarto/funder-api/shared/pagination"
+	"github.com/raymondsugiarto/funder-api/shared/database/pagination"
 )
 
 const ServiceName = "funderService"

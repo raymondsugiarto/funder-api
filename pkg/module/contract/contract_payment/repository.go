@@ -5,7 +5,7 @@ import (
 
 	"github.com/raymondsugiarto/funder-api/pkg/entity"
 	"github.com/raymondsugiarto/funder-api/pkg/model"
-	"github.com/raymondsugiarto/funder-api/shared/pagination"
+	"github.com/raymondsugiarto/funder-api/shared/database/pagination"
 	"gorm.io/gorm"
 )
 

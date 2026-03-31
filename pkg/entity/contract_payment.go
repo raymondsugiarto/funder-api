@@ -4,7 +4,7 @@ import (
 	"time"
 
 	"github.com/raymondsugiarto/funder-api/pkg/model"
-	"github.com/raymondsugiarto/funder-api/shared/pagination"
+	"github.com/raymondsugiarto/funder-api/shared/database/pagination"
 )
 
 type ContractPaymentRequest struct {

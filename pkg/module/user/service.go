@@ -5,34 +5,60 @@ import (
 
 	"github.com/raymondsugiarto/funder-api/pkg/entity"
 	usercredential "github.com/raymondsugiarto/funder-api/pkg/module/user-credential"
+	"github.com/raymondsugiarto/funder-api/shared/database/pagination"
 )
 
+const ServiceName = "userService"
+
 type Service interface {
-	// CreateUser(ctx context.Context, dto *entity.UserDto) (*entity.UserDto, error)
-	FindByUserID(ctx context.Context, userID string) (*entity.UserDto, error)
+	Create(ctx context.Context, dto *entity.UserDto) (*entity.UserDto, error)
+	FindByID(ctx context.Context, id string) (*entity.UserDto, error)
+	FindAll(ctx context.Context, req pagination.PaginationRequestDto) (*pagination.ResultPagination[entity.UserDto], error)
+	Update(ctx context.Context, dto *entity.UserDto) (*entity.UserDto, error)
+	Delete(ctx context.Context, id string) error
 }
 
 type service struct {
-	repository            Repository
+	repo                  Repository
 	userCredentialService usercredential.Service
 }
 
 func NewService(repository Repository, userCredentialService usercredential.Service) Service {
 	return &service{
-		repository:            repository,
+		repo:                  repository,
 		userCredentialService: userCredentialService,
 	}
 }
 
-// FindByUserID is a function to find user by user id
-func (s *service) FindByUserID(ctx context.Context, userID string) (*entity.UserDto, error) {
-	userDto, err := s.repository.FindByID(ctx, userID)
-	if err != nil {
-		return nil, err
-	}
-
-	return userDto, nil
+func (s *service) Create(ctx context.Context, dto *entity.UserDto) (*entity.UserDto, error) {
+	return s.repo.Create(ctx, dto)
 }
+
+func (s *service) FindByID(ctx context.Context, id string) (*entity.UserDto, error) {
+	return s.repo.FindByID(ctx, id)
+}
+
+func (s *service) FindAll(ctx context.Context, req pagination.PaginationRequestDto) (*pagination.ResultPagination[entity.UserDto], error) {
+	return s.repo.FindAll(ctx, req)
+}
+
+func (s *service) Update(ctx context.Context, dto *entity.UserDto) (*entity.UserDto, error) {
+	return s.repo.Update(ctx, dto)
+}
+
+func (s *service) Delete(ctx context.Context, id string) error {
+	return s.repo.Delete(ctx, id)
+}
+
+// // FindByUserID is a function to find user by user id
+// func (s *service) FindByUserID(ctx context.Context, userID string) (*entity.UserDto, error) {
+// 	userDto, err := s.repo.FindByID(ctx, userID)
+// 	if err != nil {
+// 		return nil, err
+// 	}
+
+// 	return userDto, nil
+// }
 
 // CreateUser is a function to create user
 // func (s *service) CreateUser(createUser *entity.CreateUser) (*entity.CreateUser, error) {

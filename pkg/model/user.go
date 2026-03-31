@@ -4,4 +4,5 @@ import concern "github.com/raymondsugiarto/funder-api/pkg/model/common"
 
 type User struct {
 	concern.CommonWithIDs
+	UserCredentials []UserCredential
 }

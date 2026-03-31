@@ -5,7 +5,8 @@ import (
 
 	"github.com/raymondsugiarto/funder-api/pkg/entity"
 	"github.com/raymondsugiarto/funder-api/pkg/model"
-	"github.com/raymondsugiarto/funder-api/shared/pagination"
+	"github.com/raymondsugiarto/funder-api/shared/database/pagination"
+	"github.com/raymondsugiarto/funder-api/shared/database/transaction"
 	"gorm.io/gorm"
 )
 
@@ -18,6 +19,7 @@ type Repository interface {
 }
 
 type repository struct {
+	transaction.AppRepository
 	db *gorm.DB
 }
 
@@ -49,7 +51,7 @@ func (r *repository) FindAll(ctx context.Context, req pagination.PaginationReque
 		Paginate(ctx, func(req *entity.FunderFilterDto) *gorm.DB {
 			query := r.db.WithContext(ctx).Model(&model.Funder{})
 			return query
-		}, &pagination.TableRequest[*entity.FunderFilterDto]{})
+		}, &pagination.TableRequest[*entity.FunderFilterDto]{Request: req.(*entity.FunderFilterDto)})
 	if err != nil {
 		return nil, err
 	}

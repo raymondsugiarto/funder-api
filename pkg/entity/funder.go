@@ -2,13 +2,14 @@ package entity
 
 import (
 	"github.com/raymondsugiarto/funder-api/pkg/model"
-	"github.com/raymondsugiarto/funder-api/shared/pagination"
+	"github.com/raymondsugiarto/funder-api/shared/database/pagination"
 )
 
 type FunderRequest struct {
 	Name           string `json:"name"`
 	PhoneNumber    string `json:"phoneNumber"`
 	FunderIDParent string `json:"funderIdParent,omitempty"`
+	Password       string `json:"password"`
 }
 
 func (r *FunderRequest) ToDto() *FunderDto {
@@ -16,31 +17,36 @@ func (r *FunderRequest) ToDto() *FunderDto {
 		Name:           r.Name,
 		PhoneNumber:    r.PhoneNumber,
 		FunderIDParent: r.FunderIDParent,
+		Password:       r.Password,
 	}
 }
 
 type FunderDto struct {
-	ID             string
-	UserID         string
-	User           *UserDto
-	Name           string
-	PhoneNumber    string
-	FunderIDParent string
+	ID             string   `json:"id"`
+	UserID         string   `json:"userId"`
+	User           *UserDto `json:"user,omitempty"`
+	Name           string   `json:"name"`
+	PhoneNumber    string   `json:"phoneNumber"`
+	FunderIDParent string   `json:"funderIdParent,omitempty"`
+	Password       string   `json:"-"`
 }
 
-func NewFunderDtoFromModel(funder *model.Funder) *FunderDto {
-	if funder == nil {
+func NewFunderDtoFromModel(m *model.Funder) *FunderDto {
+	if m == nil {
 		return nil
 	}
 
-	return &FunderDto{
-		ID:             funder.ID,
-		UserID:         funder.UserID,
-		User:           NewUserDtoFromModel(funder.User),
-		Name:           funder.Name,
-		PhoneNumber:    funder.PhoneNumber,
-		FunderIDParent: funder.FunderIDParent,
+	f := &FunderDto{
+		ID:             m.ID,
+		UserID:         m.UserID,
+		Name:           m.Name,
+		PhoneNumber:    m.PhoneNumber,
+		FunderIDParent: m.FunderIDParent,
 	}
+	if m.User != nil {
+		f.User = NewUserDtoFromModel(m.User)
+	}
+	return f
 }
 
 func (f *FunderDto) FromModel(m *model.Funder) FunderDto {
@@ -60,6 +66,18 @@ func (f *FunderDto) ToModel() *model.Funder {
 	}
 
 	return m
+}
+
+func (f FunderDto) ToUserDto() *UserDto {
+	return &UserDto{
+		ID: f.UserID,
+		UserCredentials: []UserCredentialDto{
+			{
+				Username: f.PhoneNumber,
+				Password: f.Password,
+			},
+		},
+	}
 }
 
 type FunderFilterDto struct {

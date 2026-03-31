@@ -1,8 +1,6 @@
 package server
 
 import (
-	"encoding/json"
-	"fmt"
 	"os"
 	"strconv"
 
@@ -38,7 +36,7 @@ func (s *Rest) Initialize() {
 	})
 	initDatabase()
 
-	app.Use(healthcheck.New())
+	app.Get("/health", healthcheck.New())
 	app.Use(recover.New(recover.Config{
 		EnableStackTrace: true,
 	}))
@@ -49,8 +47,8 @@ func (s *Rest) Initialize() {
 
 	routes.InitRouter(app)
 
-	data, _ := json.MarshalIndent(app.Stack(), "", "  ")
-	fmt.Println(string(data))
+	// data, _ := json.MarshalIndent(app.Stack(), "", "  ")
+	// fmt.Println(string(data))
 
 	err := app.Listen(":" + strconv.Itoa(cfg.Server.Rest.Port))
 	if err != nil {

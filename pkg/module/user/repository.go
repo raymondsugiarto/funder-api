@@ -5,13 +5,16 @@ import (
 
 	"github.com/raymondsugiarto/funder-api/pkg/entity"
 	"github.com/raymondsugiarto/funder-api/pkg/model"
+	"github.com/raymondsugiarto/funder-api/shared/database/pagination"
 	"gorm.io/gorm"
 )
 
 type Repository interface {
-	// Create(ctx context.Context, dto *entity.UserDto) (*entity.UserDto, error)
-	// FindByReferralCode(string) (*entity.CreateUser, error)
+	Create(ctx context.Context, dto *entity.UserDto) (*entity.UserDto, error)
 	FindByID(ctx context.Context, id string) (*entity.UserDto, error)
+	FindAll(ctx context.Context, req pagination.PaginationRequestDto) (*pagination.ResultPagination[entity.UserDto], error)
+	Update(ctx context.Context, dto *entity.UserDto) (*entity.UserDto, error)
+	Delete(ctx context.Context, id string) error
 }
 
 type repository struct {
@@ -24,16 +27,49 @@ func NewRepository(db *gorm.DB) Repository {
 	}
 }
 
-// FindByUserID is a function to find user by user id
-func (r *repository) FindByID(ctx context.Context, id string) (*entity.UserDto, error) {
-	var user *model.User
-	if err := r.db.WithContext(ctx).Model(&model.User{}).
-		Where("id = ?", id).
-		First(&user).Error; err != nil {
+func (r *repository) Create(ctx context.Context, dto *entity.UserDto) (*entity.UserDto, error) {
+	m := dto.ToModel()
+	err := r.db.Create(m).Error
+	if err != nil {
 		return nil, err
 	}
+	dto.ID = m.ID
+	return dto, nil
+}
 
-	return entity.NewUserDtoFromModel(user), nil
+func (r *repository) FindByID(ctx context.Context, id string) (*entity.UserDto, error) {
+	var m entity.UserDto
+	err := r.db.WithContext(ctx).First(&m, "id = ?", id).Error
+	if err != nil {
+		return nil, err
+	}
+	return &m, nil
+}
+
+func (r *repository) FindAll(ctx context.Context, req pagination.PaginationRequestDto) (*pagination.ResultPagination[entity.UserDto], error) {
+	info, paginationResult, err := pagination.NewTable[*entity.FunderFilterDto, *model.User, entity.UserDto]().
+		Paginate(ctx, func(req *entity.FunderFilterDto) *gorm.DB {
+			query := r.db.WithContext(ctx).Model(&model.User{})
+			return query
+		}, &pagination.TableRequest[*entity.FunderFilterDto]{})
+	if err != nil {
+		return nil, err
+	}
+	result := make([]entity.UserDto, len(paginationResult))
+	for i, m := range paginationResult {
+		result[i] = new(entity.UserDto).FromModel(m)
+	}
+	info.Data = result
+	return info, nil
+}
+
+func (r *repository) Update(ctx context.Context, dto *entity.UserDto) (*entity.UserDto, error) { // Implementation of updating a funder in the database
+	return nil, nil
+}
+
+func (r *repository) Delete(ctx context.Context, id string) error {
+	// Implementation of deleting a funder from the database
+	return nil
 }
 
 // // FindByReferralCode is a function to find user by referral code

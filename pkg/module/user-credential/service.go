@@ -5,6 +5,7 @@ import (
 
 	"github.com/raymondsugiarto/funder-api/pkg/entity"
 	"github.com/raymondsugiarto/funder-api/pkg/model"
+	"github.com/raymondsugiarto/funder-api/shared/database/pagination"
 	"github.com/raymondsugiarto/funder-api/shared/security"
 )
 
@@ -15,33 +16,59 @@ type Service interface {
 	FindByEmail(ctx context.Context, userCredential *entity.UserCredentialDto) (*entity.UserCredentialDto, error)
 	GetUserCredentialByUsername(ctx context.Context, organizationID, u string) (*model.UserCredential, error)
 	ChangePassword(ctx context.Context, userID, password string) error
+
+	Create(ctx context.Context, dto *entity.UserCredentialDto) (*entity.UserCredentialDto, error)
+	FindByID(ctx context.Context, id string) (*entity.UserCredentialDto, error)
+	FindAll(ctx context.Context, req pagination.PaginationRequestDto) (*pagination.ResultPagination[entity.UserCredentialDto], error)
+	Update(ctx context.Context, dto *entity.UserCredentialDto) (*entity.UserCredentialDto, error)
+	Delete(ctx context.Context, id string) error
 }
 
 type service struct {
-	repository Repository
+	repo Repository
 }
 
 func NewService(repository Repository) Service {
 	return &service{
-		repository: repository,
+		repo: repository,
 	}
 }
 
 // FindByUsername is a function to find user credential by username
 func (s *service) FindByUsername(ctx context.Context, userCredential *entity.UserCredentialDto) (*entity.UserCredentialDto, error) {
-	return s.repository.FindByUsername(ctx, userCredential)
+	return s.repo.FindByUsername(ctx, userCredential)
 }
 
 // FindByEmail is a function to find user credential by username
 func (s *service) FindByEmail(ctx context.Context, userCredential *entity.UserCredentialDto) (*entity.UserCredentialDto, error) {
-	return s.repository.FindByEmail(ctx, userCredential)
+	return s.repo.FindByEmail(ctx, userCredential)
 }
 
 func (s *service) GetUserCredentialByUsername(ctx context.Context, organizationID, u string) (*model.UserCredential, error) {
-	return s.repository.GetUserCredentialByUsername(ctx, organizationID, u)
+	return s.repo.GetUserCredentialByUsername(ctx, organizationID, u)
 }
 
 func (s *service) ChangePassword(ctx context.Context, userID, password string) error {
 	encryptedPass, _ := security.HashPassword(password)
-	return s.repository.ChangePassword(ctx, userID, encryptedPass)
+	return s.repo.ChangePassword(ctx, userID, encryptedPass)
+}
+
+func (s *service) Create(ctx context.Context, dto *entity.UserCredentialDto) (*entity.UserCredentialDto, error) {
+	return s.repo.Create(ctx, dto)
+}
+
+func (s *service) FindByID(ctx context.Context, id string) (*entity.UserCredentialDto, error) {
+	return s.repo.FindByID(ctx, id)
+}
+
+func (s *service) FindAll(ctx context.Context, req pagination.PaginationRequestDto) (*pagination.ResultPagination[entity.UserCredentialDto], error) {
+	return s.repo.FindAll(ctx, req)
+}
+
+func (s *service) Update(ctx context.Context, dto *entity.UserCredentialDto) (*entity.UserCredentialDto, error) {
+	return s.repo.Update(ctx, dto)
+}
+
+func (s *service) Delete(ctx context.Context, id string) error {
+	return s.repo.Delete(ctx, id)
 }
