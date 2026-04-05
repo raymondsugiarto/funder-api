@@ -1,4 +1,4 @@
-package funder
+package contractpayment
 
 import (
 	"context"
@@ -49,7 +49,9 @@ func (r *repository) FindAll(ctx context.Context, req pagination.PaginationReque
 		Paginate(ctx, func(req *entity.ContractPaymentFilterDto) *gorm.DB {
 			query := r.db.WithContext(ctx).Model(&model.ContractPayment{})
 			return query
-		}, &pagination.TableRequest[*entity.ContractPaymentFilterDto]{})
+		}, &pagination.TableRequest[*entity.ContractPaymentFilterDto]{
+			Request: req.(*entity.ContractPaymentFilterDto),
+		})
 	if err != nil {
 		return nil, err
 	}

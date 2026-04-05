@@ -1,13 +1,14 @@
-package funder
+package contractpayment
 
 import (
 	"context"
 
 	"github.com/raymondsugiarto/funder-api/pkg/entity"
 	"github.com/raymondsugiarto/funder-api/shared/database/pagination"
+	"github.com/raymondsugiarto/funder-api/shared/database/transaction"
 )
 
-const ServiceName = "funderService"
+const ServiceName = "contractPaymentService"
 
 type Service interface {
 	Create(ctx context.Context, dto *entity.ContractPaymentDto) (*entity.ContractPaymentDto, error)
@@ -18,11 +19,12 @@ type Service interface {
 }
 
 type service struct {
-	repo Repository
+	txManager transaction.Manager
+	repo      Repository
 }
 
-func NewService(repo Repository) Service {
-	return &service{repo: repo}
+func NewService(txManager transaction.Manager, repo Repository) Service {
+	return &service{txManager: txManager, repo: repo}
 }
 
 func (s *service) Create(ctx context.Context, dto *entity.ContractPaymentDto) (*entity.ContractPaymentDto, error) {

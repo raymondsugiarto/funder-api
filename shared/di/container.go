@@ -4,6 +4,8 @@ import (
 	"github.com/gofiber/fiber/v3"
 	"github.com/raymondsugiarto/funder-api/pkg/infrastructure/database"
 	"github.com/raymondsugiarto/funder-api/pkg/module/authentication"
+	"github.com/raymondsugiarto/funder-api/pkg/module/contract"
+	contractpayment "github.com/raymondsugiarto/funder-api/pkg/module/contract/contract_payment"
 	"github.com/raymondsugiarto/funder-api/pkg/module/funder"
 	"github.com/raymondsugiarto/funder-api/pkg/module/user"
 	usercredential "github.com/raymondsugiarto/funder-api/pkg/module/user-credential"
@@ -32,6 +34,15 @@ func (c *container) RegisterServices() {
 	c.funderService()
 
 	c.authenticationService()
+	c.contractService()
+	c.contractPaymentService()
+}
+
+func (c *container) add(name string, service any) {
+	if c.app.State().Has(name) {
+		panic("Service already registered: " + name)
+	}
+	c.app.State().Set(name, service)
 }
 
 func (c *container) gormManager() {
@@ -69,9 +80,14 @@ func (c *container) funderService() {
 	c.add(funder.ServiceName, funderService)
 }
 
-func (c *container) add(name string, service any) {
-	if c.app.State().Has(name) {
-		panic("Service already registered: " + name)
-	}
-	c.app.State().Set(name, service)
+func (c *container) contractService() {
+	contractRepository := contract.NewRepository(database.DBConn)
+	contractService := contract.NewService(c.gormManagerWithTx(), contractRepository)
+	c.add(contract.ServiceName, contractService)
+}
+
+func (c *container) contractPaymentService() {
+	contractPaymentRepository := contractpayment.NewRepository(database.DBConn)
+	contractPaymentService := contractpayment.NewService(c.gormManagerWithTx(), contractPaymentRepository)
+	c.add(contractpayment.ServiceName, contractPaymentService)
 }

@@ -1,6 +1,7 @@
 package entity
 
 import (
+	"mime/multipart"
 	"time"
 
 	"github.com/raymondsugiarto/funder-api/pkg/model"
@@ -8,31 +9,31 @@ import (
 )
 
 type ContractPaymentRequest struct {
-	ContractID    string     `json:"contractId"`
-	PaymentAt     *time.Time `json:"paymentAt"`
-	PaymentAmount float64    `json:"paymentAmount"`
-	AttachmentURL string     `json:"attachmentUrl"`
-	Notes         string     `json:"notes"`
+	ContractID     string                `json:"contractId"`
+	PaymentAt      *time.Time            `json:"paymentAt"`
+	PaymentAmount  float64               `json:"paymentAmount"`
+	AttachmentFile *multipart.FileHeader `json:"attachmentFile"`
+	Notes          string                `json:"notes"`
 }
 
-func (r *ContractPaymentRequest) ToDto() *ContractPaymentDto {
+func (r *ContractPaymentRequest) ToDto(attachmentUrl string) *ContractPaymentDto {
 	return &ContractPaymentDto{
 		ContractID:    r.ContractID,
 		PaymentAt:     r.PaymentAt,
 		PaymentAmount: r.PaymentAmount,
-		AttachmentURL: r.AttachmentURL,
+		AttachmentURL: attachmentUrl,
 		Notes:         r.Notes,
 	}
 }
 
 type ContractPaymentDto struct {
-	ID            string
-	ContractID    string
-	Contract      *ContractDto
-	PaymentAt     *time.Time
-	PaymentAmount float64
-	AttachmentURL string
-	Notes         string
+	ID            string       `json:"id"`
+	ContractID    string       `json:"contractId"`
+	Contract      *ContractDto `json:"contract,omitempty"`
+	PaymentAt     *time.Time   `json:"paymentAt"`
+	PaymentAmount float64      `json:"paymentAmount"`
+	AttachmentURL string       `json:"attachmentUrl"`
+	Notes         string       `json:"notes"`
 }
 
 func NewContractPaymentDtoFromModel(ContractPayment *model.ContractPayment) *ContractPaymentDto {

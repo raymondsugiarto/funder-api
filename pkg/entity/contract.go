@@ -1,6 +1,7 @@
 package entity
 
 import (
+	"mime/multipart"
 	"time"
 
 	"github.com/raymondsugiarto/funder-api/pkg/model"
@@ -8,7 +9,37 @@ import (
 )
 
 type ContractRequest struct {
+	ContractCode     string                `json:"contractCode"`
+	FunderID         string                `json:"funderId"`
+	DisbursementAt   *time.Time            `json:"disbursementAt"`
+	Amount           float64               `json:"amount"`
+	Duration         int                   `json:"duration"`
+	ReturnPercentage float64               `json:"returnPercentage"`
+	ReturnAmount     float64               `json:"returnAmount"`
+	AttachmentFile   *multipart.FileHeader `json:"attachmentFile"`
+	Notes            string                `json:"notes"`
+}
+
+func (r *ContractRequest) ToDto(attachmentUrl string) *ContractDto {
+	return &ContractDto{
+		ContractCode:     r.ContractCode,
+		FunderID:         r.FunderID,
+		DisbursementAt:   r.DisbursementAt,
+		Amount:           r.Amount,
+		Duration:         r.Duration,
+		ReturnPercentage: r.ReturnPercentage,
+		ReturnAmount:     r.ReturnAmount,
+		AttachmentURL:    attachmentUrl,
+		Notes:            r.Notes,
+	}
+}
+
+type ContractDto struct {
+	ID               string     `json:"id"`
 	FunderID         string     `json:"funderId"`
+	Funder           *FunderDto `json:"funder,omitempty"`
+	ContractNumber   int        `json:"contractNumber"`
+	ContractCode     string     `json:"contractCode"`
 	DisbursementAt   *time.Time `json:"disbursementAt"`
 	Amount           float64    `json:"amount"`
 	Duration         int        `json:"duration"`
@@ -16,34 +47,6 @@ type ContractRequest struct {
 	ReturnAmount     float64    `json:"returnAmount"`
 	AttachmentURL    string     `json:"attachmentUrl"`
 	Notes            string     `json:"notes"`
-}
-
-func (r *ContractRequest) ToDto() *ContractDto {
-	return &ContractDto{
-		FunderID:         r.FunderID,
-		DisbursementAt:   r.DisbursementAt,
-		Amount:           r.Amount,
-		Duration:         r.Duration,
-		ReturnPercentage: r.ReturnPercentage,
-		ReturnAmount:     r.ReturnAmount,
-		AttachmentURL:    r.AttachmentURL,
-		Notes:            r.Notes,
-	}
-}
-
-type ContractDto struct {
-	ID               string
-	FunderID         string
-	Funder           *FunderDto
-	ContractNumber   int
-	ContractCode     string
-	DisbursementAt   *time.Time
-	Amount           float64
-	Duration         int
-	ReturnPercentage float64
-	ReturnAmount     float64
-	AttachmentURL    string
-	Notes            string
 }
 
 func NewContractDtoFromModel(Contract *model.Contract) *ContractDto {
@@ -93,4 +96,13 @@ func (f *ContractDto) ToModel() *model.Contract {
 
 type ContractFilterDto struct {
 	pagination.GetListRequest
+	FunderID string `query:"funderId"`
+}
+
+func (f *ContractFilterDto) GenerateFilter() {
+	f.AddFilter(pagination.FilterItem{
+		Field: "funder_id",
+		Op:    "eq",
+		Val:   f.FunderID,
+	})
 }

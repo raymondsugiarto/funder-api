@@ -9,4 +9,6 @@ func InitRouter(app *fiber.App) {
 	// TODO: middleware auth
 	api := app.Group("/api")
 	FunderRouter(app, api)
+	ContractRouter(app, api)
+	ContractPaymentRouter(app, api)
 }

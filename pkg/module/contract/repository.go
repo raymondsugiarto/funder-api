@@ -1,4 +1,4 @@
-package funder
+package contract
 
 import (
 	"context"
@@ -15,6 +15,8 @@ type Repository interface {
 	FindAll(ctx context.Context, req pagination.PaginationRequestDto) (*pagination.ResultPagination[entity.ContractDto], error)
 	Update(ctx context.Context, dto *entity.ContractDto) (*entity.ContractDto, error)
 	Delete(ctx context.Context, id string) error
+
+	FindLastPerFunder(ctx context.Context, funderId string) (*entity.ContractDto, error)
 }
 
 type repository struct {
@@ -44,12 +46,24 @@ func (r *repository) FindByID(ctx context.Context, id string) (*entity.ContractD
 	return &m, nil
 }
 
+func (r *repository) FindLastPerFunder(ctx context.Context, funderId string) (*entity.ContractDto, error) {
+	var m *model.Contract
+	err := r.db.WithContext(ctx).First(&m, "funder_id = ?", funderId).Order("contract_number desc").Error
+	if err != nil {
+		return nil, err
+	}
+	return entity.NewContractDtoFromModel(m), nil
+}
+
 func (r *repository) FindAll(ctx context.Context, req pagination.PaginationRequestDto) (*pagination.ResultPagination[entity.ContractDto], error) {
 	info, paginationResult, err := pagination.NewTable[*entity.ContractFilterDto, *model.Contract, entity.ContractDto]().
 		Paginate(ctx, func(req *entity.ContractFilterDto) *gorm.DB {
 			query := r.db.WithContext(ctx).Model(&model.Contract{})
 			return query
-		}, &pagination.TableRequest[*entity.ContractFilterDto]{})
+		}, &pagination.TableRequest[*entity.ContractFilterDto]{
+			Request:       req.(*entity.ContractFilterDto),
+			AllowedFields: []string{"funder_id"},
+		})
 	if err != nil {
 		return nil, err
 	}

@@ -51,7 +51,9 @@ func (r *repository) FindAll(ctx context.Context, req pagination.PaginationReque
 		Paginate(ctx, func(req *entity.FunderFilterDto) *gorm.DB {
 			query := r.db.WithContext(ctx).Model(&model.Funder{})
 			return query
-		}, &pagination.TableRequest[*entity.FunderFilterDto]{Request: req.(*entity.FunderFilterDto)})
+		}, &pagination.TableRequest[*entity.FunderFilterDto]{
+			Request: req.(*entity.FunderFilterDto),
+		})
 	if err != nil {
 		return nil, err
 	}
