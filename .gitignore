@@ -26,3 +26,4 @@ go.work.sum
 .env
 config/resources
 tmp
+storage

@@ -1,12 +1,23 @@
 package pagination
 
+import "github.com/raymondsugiarto/funder-api/shared/database/view/dto"
+
 type GetListRequest struct {
+	View    dto.View
 	Page    int
 	Size    int `json:"size"`
 	SortBy  string
 	SortDir string
 	Query   string
 	Filter  []FilterItem
+}
+
+// Implement GetView method
+func (p *GetListRequest) GetView() dto.View {
+	if p.View == "" {
+		return "list"
+	}
+	return p.View
 }
 
 // Implement GetPage method

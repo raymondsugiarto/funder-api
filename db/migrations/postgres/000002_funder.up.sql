@@ -18,6 +18,7 @@ CREATE TABLE IF NOT EXISTS contract (
     disbursement_at TIMESTAMP,
     amount numeric(20, 4),
     duration int NULL,
+    due_date TIMESTAMP NULL,
     return_percentage numeric(5, 2) NULL,
     return_amount numeric(20, 4) NULL,
     attachment_url varchar(255) NULL,

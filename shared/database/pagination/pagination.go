@@ -1,5 +1,7 @@
 package pagination
 
+import "github.com/raymondsugiarto/funder-api/shared/database/view/dto"
+
 type ResultPagination[T any] struct {
 	Data        []T   `json:"contents"`
 	Count       int64 `json:"totalElements"`
@@ -15,6 +17,7 @@ type Pagination struct {
 }
 
 type PaginationRequestDto interface {
+	GetView() dto.View
 	GetPage() int
 	GetSize() int
 	GetSortBy() string

@@ -15,8 +15,10 @@ type Contract struct {
 	DisbursementAt   *time.Time
 	Amount           float64
 	Duration         int
+	DueDate          *time.Time
 	ReturnPercentage float64
 	ReturnAmount     float64
 	AttachmentURL    string
 	Notes            string
+	ContractPayments []ContractPayment
 }

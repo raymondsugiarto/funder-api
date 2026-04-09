@@ -13,6 +13,7 @@ type Repository interface {
 	Create(ctx context.Context, dto *entity.ContractDto) (*entity.ContractDto, error)
 	FindByID(ctx context.Context, id string) (*entity.ContractDto, error)
 	FindAll(ctx context.Context, req pagination.PaginationRequestDto) (*pagination.ResultPagination[entity.ContractDto], error)
+	FindAllAging(ctx context.Context, req pagination.PaginationRequestDto) (*pagination.ResultPagination[entity.ContractDto], error)
 	Update(ctx context.Context, dto *entity.ContractDto) (*entity.ContractDto, error)
 	Delete(ctx context.Context, id string) error
 
@@ -58,7 +59,28 @@ func (r *repository) FindLastPerFunder(ctx context.Context, funderId string) (*e
 func (r *repository) FindAll(ctx context.Context, req pagination.PaginationRequestDto) (*pagination.ResultPagination[entity.ContractDto], error) {
 	info, paginationResult, err := pagination.NewTable[*entity.ContractFilterDto, *model.Contract, entity.ContractDto]().
 		Paginate(ctx, func(req *entity.ContractFilterDto) *gorm.DB {
-			query := r.db.WithContext(ctx).Model(&model.Contract{})
+			query := r.db.WithContext(ctx).Model(&model.Contract{}).Preload("ContractPayments")
+			return query
+		}, &pagination.TableRequest[*entity.ContractFilterDto]{
+			Request:       req.(*entity.ContractFilterDto),
+			AllowedFields: []string{"funder_id"},
+		})
+	if err != nil {
+		return nil, err
+	}
+	result := make([]entity.ContractDto, len(paginationResult))
+	for i, m := range paginationResult {
+		result[i] = new(entity.ContractDto).FromModel(m)
+	}
+	info.Data = result
+	return info, nil
+}
+
+func (r *repository) FindAllAging(ctx context.Context, req pagination.PaginationRequestDto) (*pagination.ResultPagination[entity.ContractDto], error) {
+	info, paginationResult, err := pagination.NewTable[*entity.ContractFilterDto, *model.Contract, entity.ContractDto]().
+		Paginate(ctx, func(req *entity.ContractFilterDto) *gorm.DB {
+			query := r.db.WithContext(ctx).
+				Model(&model.Contract{}).Order("due_date desc")
 			return query
 		}, &pagination.TableRequest[*entity.ContractFilterDto]{
 			Request:       req.(*entity.ContractFilterDto),

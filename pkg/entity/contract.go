@@ -21,12 +21,14 @@ type ContractRequest struct {
 }
 
 func (r *ContractRequest) ToDto(attachmentUrl string) *ContractDto {
+	dueDate := r.DisbursementAt.AddDate(0, r.Duration, 0)
 	return &ContractDto{
 		ContractCode:     r.ContractCode,
 		FunderID:         r.FunderID,
 		DisbursementAt:   r.DisbursementAt,
 		Amount:           r.Amount,
 		Duration:         r.Duration,
+		DueDate:          &dueDate,
 		ReturnPercentage: r.ReturnPercentage,
 		ReturnAmount:     r.ReturnAmount,
 		AttachmentURL:    attachmentUrl,
@@ -35,38 +37,54 @@ func (r *ContractRequest) ToDto(attachmentUrl string) *ContractDto {
 }
 
 type ContractDto struct {
-	ID               string     `json:"id"`
-	FunderID         string     `json:"funderId"`
-	Funder           *FunderDto `json:"funder,omitempty"`
-	ContractNumber   int        `json:"contractNumber"`
-	ContractCode     string     `json:"contractCode"`
-	DisbursementAt   *time.Time `json:"disbursementAt"`
-	Amount           float64    `json:"amount"`
-	Duration         int        `json:"duration"`
-	ReturnPercentage float64    `json:"returnPercentage"`
-	ReturnAmount     float64    `json:"returnAmount"`
-	AttachmentURL    string     `json:"attachmentUrl"`
-	Notes            string     `json:"notes"`
+	ID               string               `json:"id"`
+	FunderID         string               `json:"funderId"`
+	Funder           *FunderDto           `json:"funder,omitempty"`
+	ContractNumber   int                  `json:"contractNumber"`
+	ContractCode     string               `json:"contractCode"`
+	DisbursementAt   *time.Time           `json:"disbursementAt"`
+	Amount           float64              `json:"amount"`
+	Duration         int                  `json:"duration"`
+	DueDate          *time.Time           `json:"dueDate"`
+	ReturnPercentage float64              `json:"returnPercentage"`
+	ReturnAmount     float64              `json:"returnAmount"`
+	AttachmentURL    string               `json:"attachmentUrl"`
+	Notes            string               `json:"notes"`
+	ContractPayments []ContractPaymentDto `json:"contractPayments,omitempty"`
 }
 
-func NewContractDtoFromModel(Contract *model.Contract) *ContractDto {
-	if Contract == nil {
+func NewContractDto() *ContractDto {
+	return &ContractDto{}
+}
+
+func NewContractDtoFromModel(m *model.Contract) *ContractDto {
+	if m == nil {
 		return nil
 	}
 
-	return &ContractDto{
-		ID:               Contract.ID,
-		FunderID:         Contract.FunderID,
-		ContractNumber:   Contract.ContractNumber,
-		ContractCode:     Contract.ContractCode,
-		DisbursementAt:   Contract.DisbursementAt,
-		Amount:           Contract.Amount,
-		Duration:         Contract.Duration,
-		ReturnPercentage: Contract.ReturnPercentage,
-		ReturnAmount:     Contract.ReturnAmount,
-		AttachmentURL:    Contract.AttachmentURL,
-		Notes:            Contract.Notes,
+	dto := &ContractDto{
+		ID:               m.ID,
+		FunderID:         m.FunderID,
+		ContractNumber:   m.ContractNumber,
+		ContractCode:     m.ContractCode,
+		DisbursementAt:   m.DisbursementAt,
+		Amount:           m.Amount,
+		Duration:         m.Duration,
+		DueDate:          m.DueDate,
+		ReturnPercentage: m.ReturnPercentage,
+		ReturnAmount:     m.ReturnAmount,
+		AttachmentURL:    m.AttachmentURL,
+		Notes:            m.Notes,
 	}
+
+	if m.ContractPayments != nil {
+		dto.ContractPayments = make([]ContractPaymentDto, len(m.ContractPayments))
+		for i, payment := range m.ContractPayments {
+			dto.ContractPayments[i] = *NewContractPaymentDtoFromModel(&payment)
+		}
+	}
+
+	return dto
 }
 
 func (f *ContractDto) FromModel(m *model.Contract) ContractDto {
@@ -81,6 +99,7 @@ func (f *ContractDto) ToModel() *model.Contract {
 		DisbursementAt:   f.DisbursementAt,
 		Amount:           f.Amount,
 		Duration:         f.Duration,
+		DueDate:          f.DueDate,
 		ReturnPercentage: f.ReturnPercentage,
 		ReturnAmount:     f.ReturnAmount,
 		AttachmentURL:    f.AttachmentURL,
@@ -100,9 +119,11 @@ type ContractFilterDto struct {
 }
 
 func (f *ContractFilterDto) GenerateFilter() {
-	f.AddFilter(pagination.FilterItem{
-		Field: "funder_id",
-		Op:    "eq",
-		Val:   f.FunderID,
-	})
+	if f.FunderID != "" {
+		f.AddFilter(pagination.FilterItem{
+			Field: "funder_id",
+			Op:    "eq",
+			Val:   f.FunderID,
+		})
+	}
 }
