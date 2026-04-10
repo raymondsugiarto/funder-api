@@ -14,6 +14,7 @@ const ServiceName = "funderService"
 type Service interface {
 	Create(ctx context.Context, dto *entity.FunderDto) (*entity.FunderDto, error)
 	FindByID(ctx context.Context, id string) (*entity.FunderDto, error)
+	FindByUserID(ctx context.Context, userID string) (*entity.FunderDto, error)
 	FindAll(ctx context.Context, req pagination.PaginationRequestDto) (*pagination.ResultPagination[entity.FunderDto], error)
 	Update(ctx context.Context, dto *entity.FunderDto) (*entity.FunderDto, error)
 	Delete(ctx context.Context, id string) error
@@ -57,6 +58,10 @@ func (s *service) Create(ctx context.Context, dto *entity.FunderDto) (*entity.Fu
 
 func (s *service) FindByID(ctx context.Context, id string) (*entity.FunderDto, error) {
 	return s.repo.FindByID(ctx, id)
+}
+
+func (s *service) FindByUserID(ctx context.Context, id string) (*entity.FunderDto, error) {
+	return s.repo.FindByUserID(ctx, id)
 }
 
 func (s *service) FindAll(ctx context.Context, req pagination.PaginationRequestDto) (*pagination.ResultPagination[entity.FunderDto], error) {

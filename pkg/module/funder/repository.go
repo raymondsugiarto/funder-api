@@ -13,6 +13,7 @@ import (
 type Repository interface {
 	Create(ctx context.Context, dto *entity.FunderDto) (*entity.FunderDto, error)
 	FindByID(ctx context.Context, id string) (*entity.FunderDto, error)
+	FindByUserID(ctx context.Context, id string) (*entity.FunderDto, error)
 	FindAll(ctx context.Context, req pagination.PaginationRequestDto) (*pagination.ResultPagination[entity.FunderDto], error)
 	Update(ctx context.Context, dto *entity.FunderDto) (*entity.FunderDto, error)
 	Delete(ctx context.Context, id string) error
@@ -38,12 +39,20 @@ func (r *repository) Create(ctx context.Context, dto *entity.FunderDto) (*entity
 }
 
 func (r *repository) FindByID(ctx context.Context, id string) (*entity.FunderDto, error) {
-	var m entity.FunderDto
+	var m model.Funder
 	err := r.db.WithContext(ctx).First(&m, "id = ?", id).Error
 	if err != nil {
 		return nil, err
 	}
-	return &m, nil
+	return entity.NewFunderDtoFromModel(&m), nil
+}
+func (r *repository) FindByUserID(ctx context.Context, id string) (*entity.FunderDto, error) {
+	var m model.Funder
+	err := r.db.WithContext(ctx).First(&m, "user_id = ?", id).Error
+	if err != nil {
+		return nil, err
+	}
+	return entity.NewFunderDtoFromModel(&m), nil
 }
 
 func (r *repository) FindAll(ctx context.Context, req pagination.PaginationRequestDto) (*pagination.ResultPagination[entity.FunderDto], error) {
@@ -52,7 +61,8 @@ func (r *repository) FindAll(ctx context.Context, req pagination.PaginationReque
 			query := r.db.WithContext(ctx).Model(&model.Funder{})
 			return query
 		}, &pagination.TableRequest[*entity.FunderFilterDto]{
-			Request: req.(*entity.FunderFilterDto),
+			Request:       req.(*entity.FunderFilterDto),
+			AllowedFields: []string{"funder_id_parent"},
 		})
 	if err != nil {
 		return nil, err

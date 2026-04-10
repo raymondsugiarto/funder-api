@@ -24,7 +24,7 @@ func (r *FunderRequest) ToDto() *FunderDto {
 type FunderDto struct {
 	ID             string   `json:"id"`
 	UserID         string   `json:"userId"`
-	User           *UserDto `json:"user,omitempty"`
+	User           *UserDto `json:"user,omitempty" gorm:"-"`
 	Name           string   `json:"name"`
 	PhoneNumber    string   `json:"phoneNumber"`
 	FunderIDParent string   `json:"funderIdParent,omitempty"`
@@ -82,6 +82,15 @@ func (f FunderDto) ToUserDto() *UserDto {
 
 type FunderFilterDto struct {
 	pagination.GetListRequest
+	FunderIDParent string `query:"funderIdParent"`
 }
 
-func (f FunderFilterDto) AddFilter(filter pagination.FilterItem) {}
+func (f *FunderFilterDto) GenerateFilter() {
+	if f.FunderIDParent != "" {
+		f.AddFilter(pagination.FilterItem{
+			Field: "funder_id_parent",
+			Op:    "eq",
+			Val:   f.FunderIDParent,
+		})
+	}
+}

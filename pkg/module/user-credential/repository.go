@@ -45,12 +45,12 @@ func (r *repository) Create(ctx context.Context, dto *entity.UserCredentialDto) 
 }
 
 func (r *repository) FindByID(ctx context.Context, id string) (*entity.UserCredentialDto, error) {
-	var m entity.UserCredentialDto
-	err := r.db.WithContext(ctx).First(&m, "id = ?", id).Error
+	var m *model.UserCredential
+	err := r.db.WithContext(ctx).Preload("User").First(&m, "id = ?", id).Error
 	if err != nil {
 		return nil, err
 	}
-	return &m, nil
+	return entity.NewUserCredentialDtoFromModel(m), nil
 }
 
 func (r *repository) FindAll(ctx context.Context, req pagination.PaginationRequestDto) (*pagination.ResultPagination[entity.UserCredentialDto], error) {

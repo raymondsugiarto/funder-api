@@ -6,9 +6,10 @@ import (
 	"strconv"
 	"time"
 
+	jwtware "github.com/gofiber/contrib/v3/jwt"
 	"github.com/gofiber/fiber/v2/log"
 	"github.com/gofiber/fiber/v3"
-	"github.com/golang-jwt/jwt"
+	"github.com/golang-jwt/jwt/v5"
 	"github.com/raymondsugiarto/funder-api/config"
 	"github.com/raymondsugiarto/funder-api/pkg/entity"
 	usercredential "github.com/raymondsugiarto/funder-api/pkg/module/user-credential"
@@ -19,6 +20,7 @@ import (
 const ServiceName = "authenticationService"
 
 type Service interface {
+	GetSession(ctx context.Context) (*entity.UserSessionDto, error)
 	SignIn(context.Context, *entity.LoginRequestDto) (*entity.LoginDto, error)
 }
 
@@ -32,6 +34,20 @@ func NewService(
 	return &service{
 		userCredentialService: userCredentialService,
 	}
+}
+
+func (s *service) GetSession(ctx context.Context) (*entity.UserSessionDto, error) {
+	token := jwtware.FromContext(ctx)
+	claims := token.Claims.(jwt.MapClaims)
+	userSessionDto := entity.NewUserSessionDtoFromClaims(claims)
+
+	userCredentialDto, err := s.userCredentialService.FindByID(ctx, userSessionDto.ID)
+	if err != nil {
+		return nil, errors.New("userNotFound")
+	}
+	userSessionDto.UserCredential = userCredentialDto
+
+	return userSessionDto, nil
 }
 
 func (s *service) SignIn(ctx context.Context, request *entity.LoginRequestDto) (*entity.LoginDto, error) {

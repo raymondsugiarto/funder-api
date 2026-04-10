@@ -1,12 +1,13 @@
 package middleware
 
 import (
-	"github.com/golang-jwt/jwt"
 	config "github.com/raymondsugiarto/funder-api/config"
-	shared "github.com/raymondsugiarto/funder-api/shared/context"
+	"github.com/raymondsugiarto/funder-api/pkg/entity"
+	"github.com/raymondsugiarto/funder-api/pkg/module/authentication"
 
-	jwtware "github.com/gofiber/contrib/jwt"
-	"github.com/gofiber/fiber/v2"
+	jwtware "github.com/gofiber/contrib/v3/jwt"
+	"github.com/gofiber/fiber/v3"
+	"github.com/gofiber/fiber/v3/extractors"
 )
 
 // Protected protect routes
@@ -16,10 +17,11 @@ func Protected() fiber.Handler {
 		SigningKey:     jwtware.SigningKey{Key: []byte(cfg.Server.Rest.SecretKey)},
 		ErrorHandler:   jwtError,
 		SuccessHandler: SuccessHandler,
+		Extractor:      extractors.FromAuthHeader("Bearer"),
 	})
 }
 
-func jwtError(c *fiber.Ctx, err error) error {
+func jwtError(c fiber.Ctx, err error) error {
 	if err.Error() == "Missing or malformed JWT" {
 		return c.Status(fiber.StatusBadRequest).
 			JSON(fiber.Map{"status": "error", "message": "Missing or malformed JWT", "data": nil})
@@ -28,12 +30,14 @@ func jwtError(c *fiber.Ctx, err error) error {
 		JSON(fiber.Map{"status": "error", "message": "Invalid or expired JWT", "data": nil})
 }
 
-func SuccessHandler(c *fiber.Ctx) error {
-	token := c.Locals(shared.UserContextKey).(*jwt.Token)
-	claims := token.Claims.(jwt.MapClaims)
-	userCredentialsData := new(shared.UserCredentialData)
-	userCredentialsData.ID = claims["id"].(string)
-	userCredentialsData.UserID = claims["uid"].(string)
-	c.Locals(shared.UserCredentialDataKey, userCredentialsData)
+func SuccessHandler(c fiber.Ctx) error {
+	authenticationSvc := fiber.MustGetState[authentication.Service](c.App().State(), authentication.ServiceName)
+	userSessionDto, err := authenticationSvc.GetSession(c)
+	if err != nil {
+		return c.Status(fiber.StatusUnauthorized).
+			JSON(fiber.Map{"status": "error", "message": "Failed to get user session", "data": nil})
+	}
+	c.Locals(entity.UserSessionKey, userSessionDto)
+
 	return c.Next()
 }

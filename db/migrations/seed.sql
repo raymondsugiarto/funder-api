@@ -5,7 +5,7 @@ INSERT INTO organization (id, name, code, origin, created_at, updated_at)
 INSERT INTO "user" (id, organization_id, user_type, created_at, updated_at)
  VALUES 
     ('1', '1', 'ADMIN', NOW(), NOW()),
-    ('2', '1', 'OWNER', NOW(), NOW())
+    ('2', '1', 'FUNDER', NOW(), NOW())
 ;    
 -- admin dan owner
 
