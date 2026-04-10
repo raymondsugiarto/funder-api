@@ -5,6 +5,10 @@ import (
 	"github.com/raymondsugiarto/funder-api/shared/database/pagination"
 )
 
+const (
+	FunderSessionKey = "funderSessionKey"
+)
+
 type FunderRequest struct {
 	Name           string `json:"name"`
 	PhoneNumber    string `json:"phoneNumber"`

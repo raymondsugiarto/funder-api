@@ -4,7 +4,6 @@ import (
 	"github.com/gofiber/fiber/v2/log"
 	"github.com/gofiber/fiber/v3"
 	"github.com/raymondsugiarto/funder-api/pkg/entity"
-	"github.com/raymondsugiarto/funder-api/pkg/model"
 	"github.com/raymondsugiarto/funder-api/pkg/module/funder"
 )
 
@@ -47,15 +46,9 @@ func FindAllFunder(service funder.Service) fiber.Handler {
 			return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": err.Error()})
 		}
 
-		userSession := c.Locals(entity.UserSessionKey).(*entity.UserSessionDto)
-		user := userSession.UserCredential.User
-		if user.UserType == model.FUNDER {
-			funder, err := service.FindByUserID(c, user.ID)
-			if err != nil {
-				log.WithContext(c).Errorf("error find funder by user id", err)
-				return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": err.Error()})
-			}
-			query.FunderIDParent = funder.ID
+		funderSession := c.Locals(entity.FunderSessionKey).(*entity.FunderDto)
+		if funderSession != nil {
+			query.FunderIDParent = funderSession.ID
 		}
 
 		response, err := service.FindAll(c, query)

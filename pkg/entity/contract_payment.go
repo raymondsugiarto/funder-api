@@ -74,4 +74,15 @@ func (f *ContractPaymentDto) ToModel() *model.ContractPayment {
 
 type ContractPaymentFilterDto struct {
 	pagination.GetListRequest
+	FunderID string
+}
+
+func (f *ContractPaymentFilterDto) GenerateFilter() {
+	if f.FunderID != "" {
+		f.AddFilter(pagination.FilterItem{
+			Field: "funder_id",
+			Op:    "eq",
+			Val:   f.FunderID,
+		})
+	}
 }

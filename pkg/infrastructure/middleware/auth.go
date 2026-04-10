@@ -4,6 +4,7 @@ import (
 	config "github.com/raymondsugiarto/funder-api/config"
 	"github.com/raymondsugiarto/funder-api/pkg/entity"
 	"github.com/raymondsugiarto/funder-api/pkg/module/authentication"
+	"github.com/raymondsugiarto/funder-api/pkg/module/funder"
 
 	jwtware "github.com/gofiber/contrib/v3/jwt"
 	"github.com/gofiber/fiber/v3"
@@ -38,6 +39,16 @@ func SuccessHandler(c fiber.Ctx) error {
 			JSON(fiber.Map{"status": "error", "message": "Failed to get user session", "data": nil})
 	}
 	c.Locals(entity.UserSessionKey, userSessionDto)
+
+	funderService := fiber.MustGetState[funder.Service](c.App().State(), funder.ServiceName)
+	funderDto, err := funderService.IdentifySessionFunder(c, userSessionDto)
+	if err != nil {
+		return c.Status(fiber.StatusUnauthorized).
+			JSON(fiber.Map{"status": "error", "message": "Failed to identify funder from session", "data": nil})
+	}
+	if funderDto != nil {
+		c.Locals(entity.FunderSessionKey, funderDto)
+	}
 
 	return c.Next()
 }

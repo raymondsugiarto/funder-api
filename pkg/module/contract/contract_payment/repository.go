@@ -48,6 +48,7 @@ func (r *repository) FindAll(ctx context.Context, req pagination.PaginationReque
 	info, paginationResult, err := pagination.NewTable[*entity.ContractPaymentFilterDto, *model.ContractPayment, entity.ContractPaymentDto]().
 		Paginate(ctx, func(req *entity.ContractPaymentFilterDto) *gorm.DB {
 			query := r.db.WithContext(ctx).Model(&model.ContractPayment{})
+			// TODO: funder_id filter
 			return query
 		}, &pagination.TableRequest[*entity.ContractPaymentFilterDto]{
 			Request: req.(*entity.ContractPaymentFilterDto),

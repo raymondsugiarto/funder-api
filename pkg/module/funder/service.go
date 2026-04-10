@@ -3,7 +3,9 @@ package funder
 import (
 	"context"
 
+	"github.com/gofiber/fiber/v2/log"
 	"github.com/raymondsugiarto/funder-api/pkg/entity"
+	"github.com/raymondsugiarto/funder-api/pkg/model"
 	"github.com/raymondsugiarto/funder-api/pkg/module/user"
 	"github.com/raymondsugiarto/funder-api/shared/database/pagination"
 	"github.com/raymondsugiarto/funder-api/shared/database/transaction"
@@ -18,6 +20,8 @@ type Service interface {
 	FindAll(ctx context.Context, req pagination.PaginationRequestDto) (*pagination.ResultPagination[entity.FunderDto], error)
 	Update(ctx context.Context, dto *entity.FunderDto) (*entity.FunderDto, error)
 	Delete(ctx context.Context, id string) error
+
+	IdentifySessionFunder(ctx context.Context, userSession *entity.UserSessionDto) (*entity.FunderDto, error)
 }
 
 type service struct {
@@ -36,6 +40,19 @@ func NewService(
 		repo:      repo,
 		userSvc:   userSvc,
 	}
+}
+
+func (s *service) IdentifySessionFunder(ctx context.Context, userSession *entity.UserSessionDto) (*entity.FunderDto, error) {
+	user := userSession.UserCredential.User
+	if user.UserType == model.FUNDER {
+		funder, err := s.FindByUserID(ctx, user.ID)
+		if err != nil {
+			log.WithContext(ctx).Errorf("error find funder by user id", err)
+			return nil, err
+		}
+		return funder, nil
+	}
+	return nil, nil
 }
 
 func (s *service) Create(ctx context.Context, dto *entity.FunderDto) (*entity.FunderDto, error) {

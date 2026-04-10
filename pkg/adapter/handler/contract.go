@@ -53,6 +53,11 @@ func FindAllContract(service contract.Service) fiber.Handler {
 			return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": err.Error()})
 		}
 
+		funderSession := c.Locals(entity.FunderSessionKey).(*entity.FunderDto)
+		if funderSession != nil {
+			query.FunderID = funderSession.ID
+		}
+
 		response, err := service.FindAll(c, query)
 		if err != nil {
 			return err
