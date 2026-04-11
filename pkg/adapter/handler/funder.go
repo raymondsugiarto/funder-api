@@ -46,9 +46,9 @@ func FindAllFunder(service funder.Service) fiber.Handler {
 			return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": err.Error()})
 		}
 
-		funderSession := c.Locals(entity.FunderSessionKey).(*entity.FunderDto)
+		funderSession := c.Locals(entity.FunderSessionKey)
 		if funderSession != nil {
-			query.FunderIDParent = funderSession.ID
+			query.FunderIDParent = funderSession.(*entity.FunderDto).ID
 		}
 
 		response, err := service.FindAll(c, query)

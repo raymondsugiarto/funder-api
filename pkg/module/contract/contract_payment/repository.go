@@ -47,11 +47,16 @@ func (r *repository) FindByID(ctx context.Context, id string) (*entity.ContractP
 func (r *repository) FindAll(ctx context.Context, req pagination.PaginationRequestDto) (*pagination.ResultPagination[entity.ContractPaymentDto], error) {
 	info, paginationResult, err := pagination.NewTable[*entity.ContractPaymentFilterDto, *model.ContractPayment, entity.ContractPaymentDto]().
 		Paginate(ctx, func(req *entity.ContractPaymentFilterDto) *gorm.DB {
-			query := r.db.WithContext(ctx).Model(&model.ContractPayment{})
-			// TODO: funder_id filter
+			query := r.db.WithContext(ctx).Model(&model.ContractPayment{}).
+				Joins("INNER JOIN contract on contract.id = contract_payment.contract_id").
+				Preload("Contract")
 			return query
 		}, &pagination.TableRequest[*entity.ContractPaymentFilterDto]{
-			Request: req.(*entity.ContractPaymentFilterDto),
+			Request:       req.(*entity.ContractPaymentFilterDto),
+			AllowedFields: []string{"funder_id"},
+			MapFields: map[string]string{
+				"funder_id": "contract.funder_id",
+			},
 		})
 	if err != nil {
 		return nil, err

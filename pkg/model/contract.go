@@ -8,17 +8,18 @@ import (
 
 type Contract struct {
 	concern.CommonWithIDs
-	FunderID         string
-	Funder           *Funder
-	ContractNumber   int
-	ContractCode     string
-	DisbursementAt   *time.Time
-	Amount           float64
-	Duration         int
-	DueDate          *time.Time
-	ReturnPercentage float64
-	ReturnAmount     float64
-	AttachmentURL    string
-	Notes            string
-	ContractPayments []ContractPayment
+	FunderID           string
+	Funder             *Funder
+	ContractNumber     int
+	ContractCode       string
+	DisbursementAt     *time.Time
+	Amount             float64
+	Duration           int
+	DueDate            *time.Time
+	DestinationAccount string
+	ReturnPercentage   float64
+	ReturnAmount       float64
+	AttachmentURL      string
+	Notes              string
+	ContractPayments   []ContractPayment
 }
