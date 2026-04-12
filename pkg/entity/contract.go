@@ -46,6 +46,7 @@ type ContractDto struct {
 	ContractCode       string               `json:"contractCode"`
 	DisbursementAt     *time.Time           `json:"disbursementAt"`
 	Amount             float64              `json:"amount"`
+	TotalPaidAmount    float64              `json:"totalPaidAmount"`
 	Duration           int                  `json:"duration"`
 	DueDate            *time.Time           `json:"dueDate"`
 	DestinationAccount string               `json:"destinationAccount"`
@@ -53,6 +54,7 @@ type ContractDto struct {
 	ReturnAmount       float64              `json:"returnAmount"`
 	AttachmentURL      string               `json:"attachmentUrl"`
 	Notes              string               `json:"notes"`
+	CreatedAt          time.Time            `json:"createdAt"`
 	ContractPayments   []ContractPaymentDto `json:"contractPayments,omitempty"`
 }
 
@@ -72,6 +74,7 @@ func NewContractDtoFromModel(m *model.Contract) *ContractDto {
 		ContractCode:       m.ContractCode,
 		DisbursementAt:     m.DisbursementAt,
 		Amount:             m.Amount,
+		TotalPaidAmount:    m.TotalPaidAmount,
 		Duration:           m.Duration,
 		DueDate:            m.DueDate,
 		DestinationAccount: m.DestinationAccount,
@@ -79,6 +82,7 @@ func NewContractDtoFromModel(m *model.Contract) *ContractDto {
 		ReturnAmount:       m.ReturnAmount,
 		AttachmentURL:      m.AttachmentURL,
 		Notes:              m.Notes,
+		CreatedAt:          m.CreatedAt,
 	}
 
 	if m.ContractPayments != nil {
@@ -102,6 +106,7 @@ func (f *ContractDto) ToModel() *model.Contract {
 		ContractCode:       f.ContractCode,
 		DisbursementAt:     f.DisbursementAt,
 		Amount:             f.Amount,
+		TotalPaidAmount:    f.TotalPaidAmount,
 		Duration:           f.Duration,
 		DueDate:            f.DueDate,
 		DestinationAccount: f.DestinationAccount,
@@ -120,15 +125,9 @@ func (f *ContractDto) ToModel() *model.Contract {
 
 type ContractFilterDto struct {
 	pagination.GetListRequest
-	FunderID string `query:"funderId"`
+	FunderID      string `query:"funderId"`
+	NotYetPaidOff bool   `query:"notYetPaidOff"`
 }
 
 func (f *ContractFilterDto) GenerateFilter() {
-	if f.FunderID != "" {
-		f.AddFilter(pagination.FilterItem{
-			Field: "funder_id",
-			Op:    "eq",
-			Val:   f.FunderID,
-		})
-	}
 }

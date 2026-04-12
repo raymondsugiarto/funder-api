@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 
+	"github.com/gofiber/fiber/v2/log"
 	"github.com/raymondsugiarto/funder-api/pkg/entity"
 	"github.com/raymondsugiarto/funder-api/shared/database/pagination"
 	"github.com/raymondsugiarto/funder-api/shared/database/transaction"
@@ -26,6 +27,8 @@ type Service interface {
 	FindAll(ctx context.Context, req pagination.PaginationRequestDto) (*pagination.ResultPagination[entity.ContractDto], error)
 	Update(ctx context.Context, dto *entity.ContractDto) (*entity.ContractDto, error)
 	Delete(ctx context.Context, id string) error
+
+	UpdateTotalPaidAmount(ctx context.Context, dto *entity.ContractPaymentDto) error
 }
 
 type service struct {
@@ -61,6 +64,21 @@ func (s *service) Create(ctx context.Context, dto *entity.ContractDto) (*entity.
 	}
 	dto.ContractNumber = lastContract.ContractNumber + 1
 	return s.repo.Create(ctx, dto)
+}
+
+func (s *service) UpdateTotalPaidAmount(ctx context.Context, dto *entity.ContractPaymentDto) error {
+	contract, err := s.repo.FindByID(ctx, dto.ContractID)
+	if err != nil {
+		log.WithContext(ctx).Errorf("error find contract %v", err)
+		return err
+	}
+	contract.TotalPaidAmount += dto.PaymentAmount
+	_, err = s.repo.Update(ctx, contract)
+	if err != nil {
+		log.WithContext(ctx).Errorf("error update contract %v", err)
+		return err
+	}
+	return nil
 }
 
 func (s *service) FindByID(ctx context.Context, id string) (*entity.ContractDto, error) {

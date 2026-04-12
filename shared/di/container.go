@@ -88,6 +88,7 @@ func (c *container) contractService() {
 
 func (c *container) contractPaymentService() {
 	contractPaymentRepository := contractpayment.NewRepository(database.DBConn)
-	contractPaymentService := contractpayment.NewService(c.gormManagerWithTx(), contractPaymentRepository)
+	contractService := fiber.MustGetState[contract.Service](c.app.State(), contract.ServiceName)
+	contractPaymentService := contractpayment.NewService(c.gormManagerWithTx(), contractPaymentRepository, contractService)
 	c.add(contractpayment.ServiceName, contractPaymentService)
 }

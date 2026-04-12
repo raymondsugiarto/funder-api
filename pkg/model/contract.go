@@ -4,6 +4,7 @@ import (
 	"time"
 
 	concern "github.com/raymondsugiarto/funder-api/pkg/model/common"
+	"gorm.io/gorm"
 )
 
 type Contract struct {
@@ -14,6 +15,7 @@ type Contract struct {
 	ContractCode       string
 	DisbursementAt     *time.Time
 	Amount             float64
+	TotalPaidAmount    float64
 	Duration           int
 	DueDate            *time.Time
 	DestinationAccount string
@@ -22,4 +24,8 @@ type Contract struct {
 	AttachmentURL      string
 	Notes              string
 	ContractPayments   []ContractPayment
+}
+
+func (c *Contract) ScopeNotYetPaidOff(db *gorm.DB) *gorm.DB {
+	return db.Where("total_paid_amount < amount")
 }

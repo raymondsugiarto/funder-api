@@ -78,11 +78,5 @@ type ContractPaymentFilterDto struct {
 }
 
 func (f *ContractPaymentFilterDto) GenerateFilter() {
-	if f.FunderID != "" {
-		f.AddFilter(pagination.FilterItem{
-			Field: "funder_id",
-			Op:    "eq",
-			Val:   f.FunderID,
-		})
-	}
+
 }

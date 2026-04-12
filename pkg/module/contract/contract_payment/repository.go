@@ -50,6 +50,10 @@ func (r *repository) FindAll(ctx context.Context, req pagination.PaginationReque
 			query := r.db.WithContext(ctx).Model(&model.ContractPayment{}).
 				Joins("INNER JOIN contract on contract.id = contract_payment.contract_id").
 				Preload("Contract")
+			if req.FunderID != "" {
+				query.Joins("INNER JOIN funder f ON f.id = contract.funder_id")
+				query.Where("contract.funder_id = ? OR f.funder_id_parent = ?", req.FunderID, req.FunderID)
+			}
 			return query
 		}, &pagination.TableRequest[*entity.ContractPaymentFilterDto]{
 			Request:       req.(*entity.ContractPaymentFilterDto),

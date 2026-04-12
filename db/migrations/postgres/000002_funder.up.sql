@@ -17,6 +17,7 @@ CREATE TABLE IF NOT EXISTS contract (
     contract_code varchar(255) NULL,
     disbursement_at TIMESTAMP,
     amount numeric(20, 4),
+    total_paid_amount numeric(20, 4) NULL,
     duration int NULL,
     due_date TIMESTAMP NULL,
     destination_account varchar(510) NULL,
