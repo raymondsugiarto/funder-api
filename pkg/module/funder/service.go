@@ -85,10 +85,20 @@ func (s *service) FindAll(ctx context.Context, req pagination.PaginationRequestD
 	return s.repo.FindAll(ctx, req)
 }
 
-func (s *service) Update(ctx context.Context, dto *entity.FunderDto) (*entity.FunderDto, error) {
+func (s *service) Update(ctx context.Context, newDto *entity.FunderDto) (*entity.FunderDto, error) {
+	dto, err := s.FindByID(ctx, newDto.ID)
+	if err != nil {
+		return nil, err
+	}
+	dto.Name = newDto.Name
+	dto.PhoneNumber = newDto.PhoneNumber
+	dto.FunderIDParent = newDto.FunderIDParent
+
+	// TODO: change password if exist in request
 	return s.repo.Update(ctx, dto)
 }
 
 func (s *service) Delete(ctx context.Context, id string) error {
+	// TODO: validation have contract and child
 	return s.repo.Delete(ctx, id)
 }

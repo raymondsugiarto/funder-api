@@ -9,4 +9,5 @@ type Funder struct {
 	Name           string
 	PhoneNumber    string
 	FunderIDParent string
+	FunderParent   *Funder `gorm:"foreignKey:FunderIDParent;references:ID"`
 }

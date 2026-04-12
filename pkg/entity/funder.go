@@ -26,13 +26,14 @@ func (r *FunderRequest) ToDto() *FunderDto {
 }
 
 type FunderDto struct {
-	ID             string   `json:"id"`
-	UserID         string   `json:"userId"`
-	User           *UserDto `json:"user,omitempty" gorm:"-"`
-	Name           string   `json:"name"`
-	PhoneNumber    string   `json:"phoneNumber"`
-	FunderIDParent string   `json:"funderIdParent,omitempty"`
-	Password       string   `json:"-"`
+	ID             string     `json:"id"`
+	UserID         string     `json:"userId"`
+	User           *UserDto   `json:"user,omitempty" gorm:"-"`
+	Name           string     `json:"name"`
+	PhoneNumber    string     `json:"phoneNumber"`
+	FunderIDParent string     `json:"funderIdParent,omitempty"`
+	Password       string     `json:"-"`
+	FunderParent   *FunderDto `json:"funderParent,omitempty"`
 }
 
 func NewFunderDtoFromModel(m *model.Funder) *FunderDto {
@@ -46,6 +47,9 @@ func NewFunderDtoFromModel(m *model.Funder) *FunderDto {
 		Name:           m.Name,
 		PhoneNumber:    m.PhoneNumber,
 		FunderIDParent: m.FunderIDParent,
+	}
+	if m.FunderParent != nil {
+		f.FunderParent = NewFunderDtoFromModel(m.FunderParent)
 	}
 	if m.User != nil {
 		f.User = NewUserDtoFromModel(m.User)

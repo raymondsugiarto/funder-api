@@ -58,7 +58,7 @@ func (r *repository) FindByUserID(ctx context.Context, id string) (*entity.Funde
 func (r *repository) FindAll(ctx context.Context, req pagination.PaginationRequestDto) (*pagination.ResultPagination[entity.FunderDto], error) {
 	info, paginationResult, err := pagination.NewTable[*entity.FunderFilterDto, *model.Funder, entity.FunderDto]().
 		Paginate(ctx, func(req *entity.FunderFilterDto) *gorm.DB {
-			query := r.db.WithContext(ctx).Model(&model.Funder{})
+			query := r.db.WithContext(ctx).Model(&model.Funder{}).Preload("FunderParent")
 			return query
 		}, &pagination.TableRequest[*entity.FunderFilterDto]{
 			Request:       req.(*entity.FunderFilterDto),
@@ -76,10 +76,17 @@ func (r *repository) FindAll(ctx context.Context, req pagination.PaginationReque
 }
 
 func (r *repository) Update(ctx context.Context, dto *entity.FunderDto) (*entity.FunderDto, error) { // Implementation of updating a funder in the database
-	return nil, nil
+	err := r.db.Save(dto.ToModel()).Error
+	if err != nil {
+		return nil, err
+	}
+	return dto, nil
 }
 
 func (r *repository) Delete(ctx context.Context, id string) error {
-	// Implementation of deleting a funder from the database
-	return nil
+	err := r.db.WithContext(ctx).Where("id = ?", id).Delete(&model.Funder{}).Error
+	if err != nil {
+		return err
+	}
+	return err
 }

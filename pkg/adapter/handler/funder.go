@@ -25,6 +25,28 @@ func CreateFunder(service funder.Service) fiber.Handler {
 	}
 }
 
+func UpdateFunderByID(service funder.Service) fiber.Handler {
+	return func(c fiber.Ctx) error {
+		request := new(entity.FunderRequest)
+		id := c.Params("id")
+
+		if err := c.Bind().Body(request); err != nil {
+			log.WithContext(c).Errorf("error body parser")
+			return fiber.NewError(fiber.StatusBadRequest, "errorSignIn")
+		}
+
+		dto := request.ToDto()
+		dto.ID = id
+
+		response, err := service.Update(c, dto)
+		if err != nil {
+			return err
+		}
+
+		return c.JSON(response)
+	}
+}
+
 func FindFunderByID(service funder.Service) fiber.Handler {
 	return func(c fiber.Ctx) error {
 		id := c.Params("id")
@@ -35,6 +57,19 @@ func FindFunderByID(service funder.Service) fiber.Handler {
 		}
 
 		return c.JSON(response)
+	}
+}
+
+func DeleteFunderByID(service funder.Service) fiber.Handler {
+	return func(c fiber.Ctx) error {
+		id := c.Params("id")
+
+		err := service.Delete(c, id)
+		if err != nil {
+			return err
+		}
+
+		return c.SendStatus(fiber.StatusNoContent)
 	}
 }
 
