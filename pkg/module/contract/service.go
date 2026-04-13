@@ -22,6 +22,7 @@ const (
 type ViewFunc func(ctx context.Context, req pagination.PaginationRequestDto) (*pagination.ResultPagination[entity.ContractDto], error)
 
 type Service interface {
+	DashboardService
 	Create(ctx context.Context, dto *entity.ContractDto) (*entity.ContractDto, error)
 	FindByID(ctx context.Context, id string) (*entity.ContractDto, error)
 	FindAll(ctx context.Context, req pagination.PaginationRequestDto) (*pagination.ResultPagination[entity.ContractDto], error)
@@ -97,7 +98,23 @@ func (s *service) ViewAging(ctx context.Context, req pagination.PaginationReques
 	return s.repo.FindAllAging(ctx, req)
 }
 
-func (s *service) Update(ctx context.Context, dto *entity.ContractDto) (*entity.ContractDto, error) {
+func (s *service) Update(ctx context.Context, newDto *entity.ContractDto) (*entity.ContractDto, error) {
+	dto, err := s.FindByID(ctx, newDto.ID)
+	if err != nil {
+		return nil, err
+	}
+
+	dto.ContractCode = newDto.ContractCode
+	dto.FunderID = newDto.FunderID
+	dto.Amount = newDto.Amount
+	dto.ReturnPercentage = newDto.ReturnPercentage
+	dto.Duration = newDto.Duration
+	dto.Notes = newDto.Notes
+	dto.DestinationAccount = newDto.DestinationAccount
+	if newDto.AttachmentURL != "" {
+		dto.AttachmentURL = newDto.AttachmentURL
+	}
+
 	return s.repo.Update(ctx, dto)
 }
 

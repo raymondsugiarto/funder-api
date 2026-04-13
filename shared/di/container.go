@@ -75,8 +75,9 @@ func (c *container) userService() {
 
 func (c *container) funderService() {
 	userService := fiber.MustGetState[user.Service](c.app.State(), user.ServiceName)
+	userCredentialService := fiber.MustGetState[usercredential.Service](c.app.State(), usercredential.ServiceName)
 	funderRepository := funder.NewRepository(database.DBConn)
-	funderService := funder.NewService(c.gormManagerWithTx(), funderRepository, userService)
+	funderService := funder.NewService(c.gormManagerWithTx(), funderRepository, userService, userCredentialService)
 	c.add(funder.ServiceName, funderService)
 }
 

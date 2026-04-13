@@ -66,3 +66,48 @@ func FindAllContract(service contract.Service) fiber.Handler {
 		return c.JSON(response)
 	}
 }
+
+func UpdateContractByID(service contract.Service) fiber.Handler {
+	return func(c fiber.Ctx) error {
+		request := new(entity.ContractRequest)
+		id := c.Params("id")
+
+		if err := c.Bind().Body(request); err != nil {
+			log.WithContext(c).Errorf("error body parser")
+			return fiber.NewError(fiber.StatusBadRequest, "errorSignIn")
+		}
+
+		attachmentUrl := ""
+		if request.AttachmentFile != nil {
+			attachmentUrl := `./storage/` + request.AttachmentFile.Filename
+			err := c.SaveFile(request.AttachmentFile, attachmentUrl)
+			if err != nil {
+				log.WithContext(c).Errorf("error save file", err)
+				return fiber.NewError(fiber.StatusInternalServerError, "errorSaveFile")
+			}
+		}
+
+		dto := request.ToDto(attachmentUrl)
+		dto.ID = id
+
+		response, err := service.Update(c, dto)
+		if err != nil {
+			return err
+		}
+
+		return c.JSON(response)
+	}
+}
+
+func DeleteContractByID(service contract.Service) fiber.Handler {
+	return func(c fiber.Ctx) error {
+		id := c.Params("id")
+
+		err := service.Delete(c, id)
+		if err != nil {
+			return err
+		}
+
+		return c.SendStatus(fiber.StatusNoContent)
+	}
+}

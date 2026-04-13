@@ -74,10 +74,17 @@ func (r *repository) FindAll(ctx context.Context, req pagination.PaginationReque
 }
 
 func (r *repository) Update(ctx context.Context, dto *entity.ContractPaymentDto) (*entity.ContractPaymentDto, error) { // Implementation of updating a funder in the database
-	return nil, nil
+	err := r.db.Save(dto.ToModel()).Error
+	if err != nil {
+		return nil, err
+	}
+	return dto, nil
 }
 
 func (r *repository) Delete(ctx context.Context, id string) error {
-	// Implementation of deleting a funder from the database
-	return nil
+	err := r.db.WithContext(ctx).Where("id = ?", id).Delete(&model.ContractPayment{}).Error
+	if err != nil {
+		return err
+	}
+	return err
 }

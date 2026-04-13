@@ -70,10 +70,67 @@ func (s *service) FindAll(ctx context.Context, req pagination.PaginationRequestD
 	return s.repo.FindAll(ctx, req)
 }
 
-func (s *service) Update(ctx context.Context, dto *entity.ContractPaymentDto) (*entity.ContractPaymentDto, error) {
-	return s.repo.Update(ctx, dto)
+func (s *service) Update(ctx context.Context, newDto *entity.ContractPaymentDto) (*entity.ContractPaymentDto, error) {
+	dto, err := s.FindByID(ctx, newDto.ID)
+	if err != nil {
+		return nil, err
+	}
+
+	prevAmount := dto.PaymentAmount
+
+	dto.PaymentAmount = newDto.PaymentAmount
+	dto.PaymentAt = newDto.PaymentAt
+	dto.Notes = newDto.Notes
+	if newDto.AttachmentURL != "" {
+		dto.AttachmentURL = newDto.AttachmentURL
+	}
+
+	err = s.txManager.Execute(ctx, func(ctx context.Context) error {
+		_, err := s.repo.Update(ctx, dto)
+		if err != nil {
+			return err
+		}
+
+		log.WithContext(ctx).Infof("update total paid amount %d", newDto.PaymentAmount-prevAmount)
+		// calculate the difference between new payment amount and previous payment amount
+		// update total paid amount in contract
+		err = s.callback.UpdateTotalPaidAmount(ctx, &entity.ContractPaymentDto{
+			ContractID:    dto.ContractID,
+			PaymentAmount: newDto.PaymentAmount - prevAmount,
+		})
+		if err != nil {
+			return err
+		}
+		return nil
+	})
+	if err != nil {
+		return nil, err
+	}
+	return dto, nil
 }
 
 func (s *service) Delete(ctx context.Context, id string) error {
-	return s.repo.Delete(ctx, id)
+	err := s.txManager.Execute(ctx, func(ctx context.Context) error {
+		dto, err := s.FindByID(ctx, id)
+		if err != nil {
+			return err
+		}
+
+		err = s.repo.Delete(ctx, id)
+		if err != nil {
+			return err
+		}
+
+		log.WithContext(ctx).Infof("update total paid amount %d", -dto.PaymentAmount)
+		// update total paid amount in contract
+		err = s.callback.UpdateTotalPaidAmount(ctx, &entity.ContractPaymentDto{
+			ContractID:    dto.ContractID,
+			PaymentAmount: -dto.PaymentAmount,
+		})
+		if err != nil {
+			return err
+		}
+		return nil
+	})
+	return err
 }

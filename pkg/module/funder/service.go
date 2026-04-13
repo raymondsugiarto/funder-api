@@ -7,6 +7,7 @@ import (
 	"github.com/raymondsugiarto/funder-api/pkg/entity"
 	"github.com/raymondsugiarto/funder-api/pkg/model"
 	"github.com/raymondsugiarto/funder-api/pkg/module/user"
+	usercredential "github.com/raymondsugiarto/funder-api/pkg/module/user-credential"
 	"github.com/raymondsugiarto/funder-api/shared/database/pagination"
 	"github.com/raymondsugiarto/funder-api/shared/database/transaction"
 )
@@ -25,20 +26,23 @@ type Service interface {
 }
 
 type service struct {
-	txManager transaction.Manager
-	repo      Repository
-	userSvc   user.Service
+	txManager         transaction.Manager
+	repo              Repository
+	userSvc           user.Service
+	userCredentialSvc usercredential.Service
 }
 
 func NewService(
 	txManager transaction.Manager,
 	repo Repository,
 	userSvc user.Service,
+	userCredentialSvc usercredential.Service,
 ) Service {
 	return &service{
-		txManager: txManager,
-		repo:      repo,
-		userSvc:   userSvc,
+		txManager:         txManager,
+		repo:              repo,
+		userSvc:           userSvc,
+		userCredentialSvc: userCredentialSvc,
 	}
 }
 
@@ -94,8 +98,23 @@ func (s *service) Update(ctx context.Context, newDto *entity.FunderDto) (*entity
 	dto.PhoneNumber = newDto.PhoneNumber
 	dto.FunderIDParent = newDto.FunderIDParent
 
-	// TODO: change password if exist in request
-	return s.repo.Update(ctx, dto)
+	err = s.txManager.Execute(ctx, func(txCtx context.Context) error {
+		_, err := s.repo.Update(txCtx, dto)
+		if err != nil {
+			return err
+		}
+		if newDto.Password != "" {
+			err = s.userCredentialSvc.ChangePassword(txCtx, dto.UserID, newDto.Password)
+			if err != nil {
+				return err
+			}
+		}
+		return nil
+	})
+	if err != nil {
+		return nil, err
+	}
+	return dto, nil
 }
 
 func (s *service) Delete(ctx context.Context, id string) error {

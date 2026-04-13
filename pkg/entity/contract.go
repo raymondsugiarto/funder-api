@@ -85,6 +85,10 @@ func NewContractDtoFromModel(m *model.Contract) *ContractDto {
 		CreatedAt:          m.CreatedAt,
 	}
 
+	if m.Funder != nil {
+		dto.Funder = NewFunderDtoFromModel(m.Funder)
+	}
+
 	if m.ContractPayments != nil {
 		dto.ContractPayments = make([]ContractPaymentDto, len(m.ContractPayments))
 		for i, payment := range m.ContractPayments {
@@ -130,4 +134,12 @@ type ContractFilterDto struct {
 }
 
 func (f *ContractFilterDto) GenerateFilter() {
+}
+
+type DashboardDto struct {
+	TotalAmount               float64 `json:"totalAmount"`
+	TotalAmountDisbursed      float64 `json:"totalAmountDisbursed"`
+	TotalReturnAmount         float64 `json:"totalReturnAmount"`
+	TotalReturnAmountReceived float64 `json:"totalReturnAmountReceived"`
+	TotalReturnAmountPending  float64 `json:"totalReturnAmountPending"`
 }

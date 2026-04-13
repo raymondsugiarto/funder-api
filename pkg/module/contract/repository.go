@@ -19,6 +19,7 @@ type Repository interface {
 	Delete(ctx context.Context, id string) error
 
 	FindLastPerFunder(ctx context.Context, funderId string) (*entity.ContractDto, error)
+	ViewDashboard(c context.Context, funderID string) (*entity.DashboardDto, error)
 }
 
 type repository struct {
@@ -61,7 +62,7 @@ func (r *repository) FindAll(ctx context.Context, req pagination.PaginationReque
 	m := &model.Contract{}
 	info, paginationResult, err := pagination.NewTable[*entity.ContractFilterDto, *model.Contract, entity.ContractDto]().
 		Paginate(ctx, func(req *entity.ContractFilterDto) *gorm.DB {
-			query := r.db.WithContext(ctx).Model(m).Preload("ContractPayments")
+			query := r.db.WithContext(ctx).Model(m).Preload("ContractPayments").Preload("Funder")
 			// TODO: funder_id filter
 			if req.FunderID != "" {
 				query.Joins("INNER JOIN funder f ON f.id = contract.funder_id")
@@ -92,7 +93,7 @@ func (r *repository) FindAllAging(ctx context.Context, req pagination.Pagination
 	info, paginationResult, err := pagination.NewTable[*entity.ContractFilterDto, *model.Contract, entity.ContractDto]().
 		Paginate(ctx, func(req *entity.ContractFilterDto) *gorm.DB {
 			query := r.db.WithContext(ctx).
-				Model(m)
+				Model(m).Preload("Funder")
 
 			// yang akan overdue dan belum paid off
 			query.Where("contract.due_date > ?", time.Now())
@@ -128,4 +129,27 @@ func (r *repository) Delete(ctx context.Context, id string) error {
 		return err
 	}
 	return err
+}
+
+func (r *repository) ViewDashboard(c context.Context, funderID string) (*entity.DashboardDto, error) {
+	var m *entity.DashboardDto
+	now := time.Now().Format(time.DateTime)
+	query := r.db.WithContext(c).Table("contract").
+		Select("SUM(amount) as total_amount, sum(return_amount) as total_return_amount, SUM(CASE WHEN disbursement_at <= '" + now + "' THEN amount ELSE 0 END) as total_amount_disbursed, SUM(CASE WHEN disbursement_at <='" + now + "' THEN return_amount ELSE 0 END) as total_return_amount_received, SUM(CASE WHEN disbursement_at >'" + now + "' THEN return_amount ELSE 0 END) as total_return_amount_pending")
+	if funderID != "" {
+		query.Joins("INNER JOIN funder f ON f.id = contract.funder_id")
+		query.Where("contract.funder_id = ? OR f.funder_id_parent = ?", funderID, funderID)
+	}
+
+	err := query.Find(&m).Error
+	if err != nil {
+		return nil, err
+	}
+	return &entity.DashboardDto{
+		TotalAmount:               m.TotalAmount,
+		TotalAmountDisbursed:      m.TotalAmountDisbursed,
+		TotalReturnAmount:         m.TotalReturnAmount,
+		TotalReturnAmountReceived: m.TotalReturnAmountReceived,
+		TotalReturnAmountPending:  m.TotalReturnAmountPending,
+	}, nil
 }
