@@ -49,7 +49,7 @@ func (r *repository) FindAll(ctx context.Context, req pagination.PaginationReque
 		Paginate(ctx, func(req *entity.ContractPaymentFilterDto) *gorm.DB {
 			query := r.db.WithContext(ctx).Model(&model.ContractPayment{}).
 				Joins("INNER JOIN contract on contract.id = contract_payment.contract_id").
-				Preload("Contract")
+				Preload("Contract").Preload("Contract.Funder")
 			if req.FunderID != "" {
 				query.Joins("INNER JOIN funder f ON f.id = contract.funder_id")
 				query.Where("contract.funder_id = ? OR f.funder_id_parent = ?", req.FunderID, req.FunderID)
@@ -57,7 +57,8 @@ func (r *repository) FindAll(ctx context.Context, req pagination.PaginationReque
 			return query
 		}, &pagination.TableRequest[*entity.ContractPaymentFilterDto]{
 			Request:       req.(*entity.ContractPaymentFilterDto),
-			AllowedFields: []string{"funder_id"},
+			QueryField:    []string{"notes"},
+			AllowedFields: []string{"funder_id", "payment_at"},
 			MapFields: map[string]string{
 				"funder_id": "contract.funder_id",
 			},

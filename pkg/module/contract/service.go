@@ -119,5 +119,12 @@ func (s *service) Update(ctx context.Context, newDto *entity.ContractDto) (*enti
 }
 
 func (s *service) Delete(ctx context.Context, id string) error {
+	dto, err := s.FindByID(ctx, id)
+	if err != nil {
+		return err
+	}
+	if dto.TotalPaidAmount > 0 {
+		return errors.New("tidak dapat menghapus kontrak yang sudah memiliki pembayaran")
+	}
 	return s.repo.Delete(ctx, id)
 }

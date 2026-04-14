@@ -74,9 +74,22 @@ func (f *ContractPaymentDto) ToModel() *model.ContractPayment {
 
 type ContractPaymentFilterDto struct {
 	pagination.GetListRequest
-	FunderID string
+	FunderID       string
+	PaymentAtStart string
+	PaymentAtEnd   string
 }
 
 func (f *ContractPaymentFilterDto) GenerateFilter() {
-
+	if f.PaymentAtStart != "" && f.PaymentAtEnd != "" {
+		f.AddFilter(pagination.FilterItem{
+			Field: "payment_at",
+			Op:    "gte",
+			Val:   f.PaymentAtStart,
+		})
+		f.AddFilter(pagination.FilterItem{
+			Field: "payment_at",
+			Op:    "lt",
+			Val:   f.PaymentAtEnd,
+		})
+	}
 }

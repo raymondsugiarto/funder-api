@@ -157,7 +157,7 @@ func whereConditions[T PaginationRequestDto](db *gorm.DB, req *TableRequest[T]) 
 	condStr := []string{}
 	values := make([]interface{}, 0)
 	for _, v := range req.QueryField {
-		condStr = append(condStr, v+" iLIKE ?")
+		condStr = append(condStr, getMappingField(req, v)+" iLIKE ?")
 		values = append(values, "%"+req.Request.GetQuery()+"%")
 	}
 	return db.Where(strings.Join(condStr, " OR "), values...)

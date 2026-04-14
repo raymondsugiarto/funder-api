@@ -75,6 +75,7 @@ func (r *repository) FindAll(ctx context.Context, req pagination.PaginationReque
 			return query
 		}, &pagination.TableRequest[*entity.ContractFilterDto]{
 			Request:       req.(*entity.ContractFilterDto),
+			QueryField:    []string{"contract_code", "destination_account", "notes"},
 			AllowedFields: []string{"funder_id"},
 		})
 	if err != nil {
@@ -94,7 +95,6 @@ func (r *repository) FindAllAging(ctx context.Context, req pagination.Pagination
 		Paginate(ctx, func(req *entity.ContractFilterDto) *gorm.DB {
 			query := r.db.WithContext(ctx).
 				Model(m).Preload("Funder")
-
 			// yang akan overdue dan belum paid off
 			query.Where("contract.due_date > ?", time.Now())
 			query.Order("due_date asc")
@@ -102,6 +102,7 @@ func (r *repository) FindAllAging(ctx context.Context, req pagination.Pagination
 			return query
 		}, &pagination.TableRequest[*entity.ContractFilterDto]{
 			Request:       req.(*entity.ContractFilterDto),
+			QueryField:    []string{"contract_code", "destination_account", "notes"},
 			AllowedFields: []string{"funder_id"},
 		})
 	if err != nil {

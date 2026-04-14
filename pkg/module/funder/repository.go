@@ -62,6 +62,7 @@ func (r *repository) FindAll(ctx context.Context, req pagination.PaginationReque
 			return query
 		}, &pagination.TableRequest[*entity.FunderFilterDto]{
 			Request:       req.(*entity.FunderFilterDto),
+			QueryField:    []string{"phone_number", "name"},
 			AllowedFields: []string{"funder_id_parent"},
 		})
 	if err != nil {
