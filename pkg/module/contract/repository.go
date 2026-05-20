@@ -51,7 +51,7 @@ func (r *repository) FindByID(ctx context.Context, id string) (*entity.ContractD
 
 func (r *repository) FindLastPerFunder(ctx context.Context, funderId string) (*entity.ContractDto, error) {
 	var m *model.Contract
-	err := r.db.WithContext(ctx).First(&m, "funder_id = ?", funderId).Order("contract_number desc").Error
+	err := r.db.WithContext(ctx).Order("contract_number desc").First(&m, "funder_id = ?", funderId).Error
 	if err != nil {
 		return nil, err
 	}
