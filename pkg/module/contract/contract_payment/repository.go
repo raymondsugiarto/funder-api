@@ -36,12 +36,12 @@ func (r *repository) Create(ctx context.Context, dto *entity.ContractPaymentDto)
 }
 
 func (r *repository) FindByID(ctx context.Context, id string) (*entity.ContractPaymentDto, error) {
-	var m entity.ContractPaymentDto
+	var m model.ContractPayment
 	err := r.db.WithContext(ctx).First(&m, "id = ?", id).Error
 	if err != nil {
 		return nil, err
 	}
-	return &m, nil
+	return entity.NewContractPaymentDtoFromModel(&m), nil
 }
 
 func (r *repository) FindAll(ctx context.Context, req pagination.PaginationRequestDto) (*pagination.ResultPagination[entity.ContractPaymentDto], error) {
